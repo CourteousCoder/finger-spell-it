@@ -1,10 +1,18 @@
 'use strict';
+//All these objects used to be many variables.
+//I grouped them for code organization.
+
 var SPEEDS = [ //in milliseconds
 	1000, //slow
 	666, //medium
 	333, //fast
 	200 //Deaf
 ];
+var FineTuneSpeedEnum = {
+	INCREASE: 0,
+	DECREASE: 1,
+	STEADY: 2
+}
 
 var StateEnum = {
 	LISTENING: 0,
@@ -12,7 +20,7 @@ var StateEnum = {
 };
 
 var conversation = {
-	playerState: StateEnum.Listening,
+	playerState: StateEnum.LISTENING,
 	score: 0,
 	horizontalOffset: 0, //for ASL-grammatically correct double letters.
 	wordIndex: 0,
@@ -24,10 +32,10 @@ var conversation = {
 var config = {
 	maxWordIndex: 0,
 	wordLengthLimit: 0,
-	speed: 1, //default speed is medium
+	speed: SPEEDS[1], //default speed is medium
 }
 
-function count_available(wordlist, maxlength) {
+function countAvailableWords(wordlist, maxlength) {
 	// returns the number of words with word length <= maxlength
 	// assumes wordlist is sorted by length, shortest words first
 	var i;
@@ -43,7 +51,7 @@ function compareWordlength(a, b) {
 	return a.length - b.length;
 }
 
-function clear_used() {
+function clearUsed() {
 	conversation.wordsUsed = [];
 	conversation.wordIndex = 0;
 }
@@ -51,15 +59,12 @@ function clear_used() {
 function showLetterImage(word, letterIndex, id) {
 	var letter = " ";
 	//Ensure it's an alphabetic character
-	if (conversation.word.length > 0 &&
-		conversation.word[conversation.letterIndex].match(/[a-z]/i)) {
+	if (word.length > 0 && word[letterIndex].match(/[a-z]/i)) {
 		// check for double letter
-		if (conversation.letterIndex > 0 &&
-			conversation.word[conversation.letterIndex] ==
-			conversation.word[conversation.letterIndex - 1]) {
+		if (letterIndex > 0 && word[letterIndex] == word[letterIndex - 1]) {
 			conversation.horizontalOffset++;
 		}
-		letter = conversation.word[conversation.letterIndex];
+		letter = word[letterIndex];
 	}
 	document.getElementById(id).style.textAlign = "right";
 	document.getElementById(id).style.paddingRight = (5 *
@@ -67,86 +72,107 @@ function showLetterImage(word, letterIndex, id) {
 	document.getElementById(id).innerHTML = letter;
 }
 
-function update_letter() {
+function updateLetter() {
 	if (conversation.playerState == StateEnum.LISTENING) {
 		if (conversation.letterIndex < conversation.word.length) {
 			showLetterImage(conversation.word, conversation.letterIndex,
-				"debugLetterImage");
+				"letterImage");
 			conversation.letterIndex++;
-			setTimeout(update_letter, config.speed);
+			setTimeout(updateLetter, config.speed);
 		} else { //Computr is finished signing. Player's turn to sign.
-			showLetterImage(" ", 0, "debugLetterImage");
+			showLetterImage(" ", 0, "letterImage");
 			conversation.playerState = StateEnum.SIGNING;
 		}
 	}
 }
 
-function change_speed(speed_val) {
-	config.speed = SPEEDS[speed_val];
-	playWord();
+function changeSpeed(speed_arg) {
+	config.speed = SPEEDS[speed_arg];
+	//playWord();
 }
 
 function clearInput() {
+	//Reset horizontal offset for word replays.
+	conversation.horizontalOffset = 0;
+	//Reset playerInputPreview
+	showLetterImage(" ", 0, "inputImage");
+	//Clear the textbox and focus
 	document.getElementById("playerInput").value = "";
 	document.getElementById("playerInput").focus();
 }
 
 function inputListener() {
-	var inputText = document.getElementById('playerInput').value;
-	showLetterImage(inputText, inputText.length - 1, "debugInputImage");
+	if (conversation.playerState == StateEnum.SIGNING) {
+		var input = document.getElementById('playerInput');
+		//If The user types texts and then deletes it
+		if (input.value == "") {
+			clearInput();
+		} else {
+			showLetterImage(input.value, input.value.length - 1, "inputImage");
+		}
+	}
+	//The user is listening and should not interrupt.
+	else {
+		clearInput();
+	}
 }
 
-function updateScore(score_arg) {
-	document.getElementById("score").innerHTML = score_arg + '';
+function addToScore(amount) {
+	conversation.score += amount;
+	document.getElementById("score").innerHTML = conversation.score + '';
 }
 
 function playWord() {
-	conversation.state = StateEnum.LISTENING;
+	conversation.playerState = StateEnum.LISTENING;
 	conversation.letterIndex = 0;
 	clearInput();
-	update_letter();
+	updateLetter();
 }
 
-function fine_tune_speed(speed_val_arg) {
-	if (speed_val_arg == 0) {
-		config.speed *= 1.3;
-	} else if (speed_val_arg == 1) {
-		config.speed /= 1.3;
+function fineTuneSpeed(fine_speed_arg) {
+	var ADJUST_BY = 1.3; //Adjust speed by thirds.
+	switch (fine_speed_arg) {
+		case FineTuneSpeedEnum.INCREASE:
+			config.speed *= ADJUST_BY;
+			break;
+		case FineTuneSpeedEnum.DECREASE:
+			config.speed /= ADJUST_BY
+			break;
+		case FineTuneSpeedEnum.STEADY:
+		default:
+			return false;
 	}
-	playWord();
+	return true;
+	//playWord();
 }
 
-function set_length_lim(length_lim) {
+function setWordLengthLimit(length_lim) {
 	config.wordLengthLimit = length_lim;
-	config.maxWordIndex = count_available(words, length_lim);
-	clear_used()
-	new_word();
+	config.maxWordIndex = countAvailableWords(WORDS, length_lim);
+	clearUsed();
+	newWord();
 }
 
 function checkWord() {
-
 	var inputText = document.getElementById("playerInput").value;
-	if (inputText == "") {
-		playWord();
-	} else if (inputText.toLowerCase() == word.toLowerCase()) {
-		conversation.playWord = StateEnum.LISTENING;
-		return true;
-		updateScore(++score);
-	} else {
-		updateScore(--score);
+	var isCorrect = inputText.toLowerCase() == conversation.word.toLowerCase();
+	if (inputText.length > 0) {
+		if (isCorrect) {
+			addToScore(+1);
+		} else {
+			addToScore(-1);
+		}
 	}
-	return false;
+	return isCorrect;
 }
 
-function new_word() {
+function newWord() {
 	var randIndex = 0;
 	var k;
-	//If the previous word had a double letter, the offset would persist.
-	//To fix, set it to zero.
-	conversation.horizontalOffset = 0;
+
 	//If we used all the words.
 	if (conversation.usedWords.length >= config.maxWordIndex) {
-		clear_used();
+		clearUsed();
 	}
 	//Pick a unique random word from the dictionary under the letter limit.
 	do {
@@ -154,31 +180,29 @@ function new_word() {
 	} while (conversation.usedWords.includes(randIndex));
 	//Take that new word and set it as the current word.
 	conversation.usedWords.push(randIndex);
-	conversation.word = words[randIndex];
+	conversation.word = WORDS[randIndex];
 	playWord();
 }
 
 function buttonClickListener() {
-	//Reset horizontal offset for word replays.
-	conversation.horizontalOffset = 0;
-	if (checkWord()) {
-		new_word();
+	if (conversation.playerState == StateEnum.SIGNING) {
+		if (checkWord()) {
+			newWord();
+		} else {
+			//Replay so they can try again.
+			playWord();
+		}
+	} else {
+		clearInput();
 	}
-	//Clear input-text box.
-	document.getElementById("playerInput").value = "";
-	//Clear input-preview box.
-	var inputText = document.getElementById('playerInput').value;
-	showLetterImage(inputText, " ", "debugInputImage");
 }
 
 function onLoadListener() {
-	// sort by word length
-	words.sort(compareWordlength);
-	maxWordIndex = count_available(words, config.wordLengthLimit);
 	document.getElementById("playerSubmitAnswer").onclick = buttonClickListener;
 	document.getElementById("playerInput").onkeyup = inputListener;
-	clear_used();
-	new_word();
+	// sort by word length
+	WORDS.sort(compareWordlength);
+	setWordLengthLimit(99);
 }
 
 window.onload = onLoadListener;
