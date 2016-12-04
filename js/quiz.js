@@ -1,30 +1,30 @@
 'use strict';
-var word = "";
-var letterIndex = 0;
-var wordIndex = 0;
-var speed = new Array();
-var used_words = new Array();
-var score = 0;
-// boolean switches to control playback
-var newpage = false; // autostart first word (false = don't autostart)
-var playing = false;
-var iscorrect = false;
-var ischecked = false;
+var SPEEDS = [ //in milliseconds
+	1000, //slow
+	666, //medium
+	333, //fast
+	200 //Deaf
+];
 
-// default speed is medium
-var speed_val = 1;
-var new_speed;
-var length_lim = 99;
-var all_letters;
+var StateEnum = {
+	LISTENING: 0,
+	SIGNING: 1
+};
 
-function init() {
-	speed[0] = 1000; // 1 second
-	speed[1] = 666; // 2/3 second
-	speed[2] = 333; // 1/3 second
-	speed[3] = 200; // 1/5 second
-	// default speed is medium
-	new_speed = speed[speed_val];
-	all_letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+var conversation = {
+	playerState: StateEnum.Listening,
+	score: 0,
+	horizontalOffset: 0, //for ASL-grammatically correct double letters.
+	wordIndex: 0,
+	letterIndex: 0,
+	word: "",
+	usedWords: []
+};
+
+var config = {
+	maxWordIndex: 0,
+	wordLengthLimit: 0,
+	speed: 1, //default speed is medium
 }
 
 function count_available(wordlist, maxlength) {
@@ -44,141 +44,141 @@ function compareWordlength(a, b) {
 }
 
 function clear_used() {
-	delete used_words;
-	used_words = new Array();
-	wordIndex = 0;
+	conversation.wordsUsed = [];
+	conversation.wordIndex = 0;
 }
-// sort by word length
-words.sort(compareWordlength);
-var maxWordIndex = count_available(words, length_lim);
+
+function showLetterImage(word, letterIndex, id) {
+	var letter = " ";
+	//Ensure it's an alphabetic character
+	if (conversation.word.length > 0 &&
+		conversation.word[conversation.letterIndex].match(/[a-z]/i)) {
+		// check for double letter
+		if (conversation.letterIndex > 0 &&
+			conversation.word[conversation.letterIndex] ==
+			conversation.word[conversation.letterIndex - 1]) {
+			conversation.horizontalOffset++;
+		}
+		letter = conversation.word[conversation.letterIndex];
+	}
+	document.getElementById(id).style.textAlign = "right";
+	document.getElementById(id).style.paddingRight = (5 *
+		conversation.horizontalOffset) + "%";
+	document.getElementById(id).innerHTML = letter;
+}
 
 function update_letter() {
-	if (playing == false) {
-		return false;
-	}
-	if (letterIndex >= word.length) {
-		showLetterImage("blank", false;);
-		return;
-	}
-	if (all_letters.indexOf(word.charAt(letterIndex)) >= 0) {
-		// check for double letter
-		if (word.charAt(letterIndex) == word.charAt(letterIndex - 1)) {
-			eval("document.images['ASLalphabet'].src='images/" + word.charAt(letterIndex) +
-				word.charAt(
-					letterIndex++) + ".gif'");
-		} else {
-			eval("document.images['ASLalphabet'].src='images/" + word.charAt(letterIndex++) +
-				".gif'");
+	if (conversation.playerState == StateEnum.LISTENING) {
+		if (conversation.letterIndex < conversation.word.length) {
+			showLetterImage(conversation.word, conversation.letterIndex,
+				"debugLetterImage");
+			conversation.letterIndex++;
+			setTimeout(update_letter, config.speed);
+		} else { //Computr is finished signing. Player's turn to sign.
+			showLetterImage(" ", 0, "debugLetterImage");
+			conversation.playerState = StateEnum.SIGNING;
 		}
-	} else {
-		document.images['ASLalphabet'].src = "images/blank.gif";
-		letterIndex++;
 	}
-	setTimeout("update_letter()", new_speed);
 }
 
-function change_speed(speed_val_arg) {
-	new_speed = speed[speed_val_arg];
-	//alert(new_speed);
-	change_speed2();
+function change_speed(speed_val) {
+	config.speed = SPEEDS[speed_val];
+	playWord();
 }
 
-function change_speed2() {
-	playing = true;
-	iscorrect = false;
-	ischecked = false;
-	letterIndex = 0;
-	document.asl_words.input.focus();
-	//	window.setTimeout("update_letter()", new_speed);
+function clearInput() {
+	document.getElementById("playerInput").value = "";
+	document.getElementById("playerInput").focus();
+}
+
+function inputListener() {
+	var inputText = document.getElementById('playerInput').value;
+	showLetterImage(inputText, inputText.length - 1, "debugInputImage");
+}
+
+function updateScore(score_arg) {
+	document.getElementById("score").innerHTML = score_arg + '';
+}
+
+function playWord() {
+	conversation.state = StateEnum.LISTENING;
+	conversation.letterIndex = 0;
+	clearInput();
 	update_letter();
 }
 
-function set_speed(speed_val_arg) {
+function fine_tune_speed(speed_val_arg) {
 	if (speed_val_arg == 0) {
-		new_speed = new_speed * 1.3;
-	} else
-	if (speed_val_arg == 1) {
-		new_speed = new_speed / 1.3;
+		config.speed *= 1.3;
+	} else if (speed_val_arg == 1) {
+		config.speed /= 1.3;
 	}
-	//alert(new_speed);
-	change_speed2();
+	playWord();
 }
 
-function set_length_lim(length_lim_arg) {
-	//alert(length_lim_arg);
-	playing = true;
-	iscorrect = false;
-	ischecked = false;
-	letterIndex = 0;
-	length_lim = length_lim_arg;
-	maxWordIndex = count_available(words, length_lim);
+function set_length_lim(length_lim) {
+	config.wordLengthLimit = length_lim;
+	config.maxWordIndex = count_available(words, length_lim);
 	clear_used()
-	document.asl_words.input.focus();
 	new_word();
 }
 
-function check_word() {
-	if (ischecked == true) {
-		if (iscorrect == true) {
-			new_word();
-		} else {
-			change_speed2();
-		}
-		return false;
-	}
-	ischecked = true;
-	if (document.forms[0].input.value == word) {
+function checkWord() {
 
-		//alert("Correct: nice job!");
-		iscorrect = true;
-		document.images['ASLalphabet'].src = "images/goodjob.png";
-		playing = false;
-		score = score + 1;
-		document.getElementById('scoretxt').innerHTML = score + '';
+	var inputText = document.getElementById("playerInput").value;
+	if (inputText == "") {
+		playWord();
+	} else if (inputText.toLowerCase() == word.toLowerCase()) {
+		conversation.playWord = StateEnum.LISTENING;
+		return true;
+		updateScore(++score);
 	} else {
-		if (document.forms[0].input.value == "") {
-			change_speed2();
-		} else {
-			//alert("Sorry: try again!");
-			document.images['ASLalphabet'].src = "images/tryagain.png";
-			playing = false;
-			score = score - 1;
-			document.getElementById('scoretxt').innerHTML = score + '';
-
-		}
+		updateScore(--score);
 	}
-	document.asl_words.input.select();
 	return false;
 }
 
 function new_word() {
-	var isUsed = false;
+	var randIndex = 0;
 	var k;
-	while (true) {
-		var rand = Math.random();
-		var randNum = Math.floor(rand * maxWordIndex + 1);
-		isUsed = false;
-		if (used_words.length >= maxWordIndex) {
-			clear_used();
-		} else {
-			for (k = 0; k < used_words.length; k++) {
-				if (randNum == used_words[k]) {
-					isUsed = true;
-				}
-			}
-		}
-		if (isUsed == false) {
-			used_words[wordIndex++] = randNum;
-			word = words[randNum];
-			document.forms[0].input.value = "";
-			document.asl_words.input.focus();
-			break;
-		}
+	//If the previous word had a double letter, the offset would persist.
+	//To fix, set it to zero.
+	conversation.horizontalOffset = 0;
+	//If we used all the words.
+	if (conversation.usedWords.length >= config.maxWordIndex) {
+		clear_used();
 	}
-	if (newpage == true) {
-		newpage = false;
-		return;
-	} else {
-		change_speed2();
-	}
+	//Pick a unique random word from the dictionary under the letter limit.
+	do {
+		randIndex = Math.floor(Math.random() * config.maxWordIndex + 1);
+	} while (conversation.usedWords.includes(randIndex));
+	//Take that new word and set it as the current word.
+	conversation.usedWords.push(randIndex);
+	conversation.word = words[randIndex];
+	playWord();
 }
+
+function buttonClickListener() {
+	//Reset horizontal offset for word replays.
+	conversation.horizontalOffset = 0;
+	if (checkWord()) {
+		new_word();
+	}
+	//Clear input-text box.
+	document.getElementById("playerInput").value = "";
+	//Clear input-preview box.
+	var inputText = document.getElementById('playerInput').value;
+	showLetterImage(inputText, " ", "debugInputImage");
+}
+
+function onLoadListener() {
+	// sort by word length
+	words.sort(compareWordlength);
+	maxWordIndex = count_available(words, config.wordLengthLimit);
+	document.getElementById("playerSubmitAnswer").onclick = buttonClickListener;
+	document.getElementById("playerInput").onkeyup = inputListener;
+	clear_used();
+	new_word();
+}
+
+window.onload = onLoadListener;
