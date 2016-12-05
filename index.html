@@ -8,24 +8,54 @@
     <script src="js/quiz.js" charset="utf-8"></script>
   </head>
   <body>
-    <div class="stage" id="letterImageStage">
-      <img class="hands" id="letterImage" src="img/_.gif" />
-    </div>
-    <input type="text" id="playerInput" value="">
-    <button type="button" id="playerSubmitAnswer">Go</button>
-    Score:
-    <output type="number" id="score">0</output>
-    <br />
-    <div>
-      Speed:
-      <button type="button" id="slower">-</button>
-      <input type="range" id="speedSlider" min="200" max="1000" value="650" />
-      <button type="button" id="faster">+</button>
-      Auto:
-      <input type="checkbox" id="autospeed" value="Auto Speed" checked />
-    </div>
-    <div class="stage" id="inputImageStage">
-      <img class="hands" id="inputImage" src="img/_.gif" />
-    </div>
+    <table class="content">
+      <tr>
+        <td>
+          <div class="theater">
+            <div class="stage" id="letterImageStage">
+              <img class="hands" id="letterImage" src="img/_.gif" />
+            </div>
+            <img class="leftcurtain curtainOverlay" src="img/leftcurtain.png">
+            <img class="rightcurtain curtainOverlay" src="img/rightcurtain.png">
+            <img class="topcurtain curtainOverlay" src="img/topcurtain.png">
+          </div>
+        </td>
+        <td>
+          <div>
+          </div>
+          <div class="theater">
+            <div class="stage" id="inputImageStage">
+              <img class="hands" id="inputImage" src="img/_.gif" />
+            </div>
+            <img class="leftcurtain curtainOverlay" src="img/leftcurtain.png">
+            <img class="rightcurtain curtainOverlay" src="img/rightcurtain.png">
+            <img class="topcurtain curtainOverlay" src="img/topcurtain.png">
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <fieldset>
+            <label for="playerInput">Type the word</label>
+            <input type="text" id="playerInput" value="">
+            <button type="button" id="playerSubmitAnswer">Go</button>
+            <label for="score">Score</label>
+            <output type="number" id="score">0</output>
+          </fieldset>
+        </td>
+        <td>
+          <fieldset>
+            <label for="speedcontrol">Speed</label>
+            <span id="speedcontrol">
+              <button type="button" id="slower">-</button>
+              <input type="range" id="speedSlider" />
+              <button type="button" id="faster">+</button>
+              <label for="autospeed">Auto Speed</label>
+              <input type="checkbox" id="autospeed" value="Auto Speed" checked />
+            </span>
+          </fieldset>
+        </td>
+      </tr>
+    </table>
   </body>
 </html>

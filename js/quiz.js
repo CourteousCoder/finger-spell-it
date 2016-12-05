@@ -19,7 +19,7 @@ var StateEnum = {
 var conversation = {
 	playerState: StateEnum.SIGNING,
 	score: 0,
-	horizontalOffset: 0, //for ASL-grammatically correct double letters.
+	doubleLetters: 0, //for ASL-grammatically correct double letters.
 	wordIndex: 0,
 	letterIndex: 0,
 	word: "",
@@ -58,19 +58,32 @@ function getImageFileName(letter) {
 	return "img/" + letter + ".gif";
 }
 
+//ASL Grammar says you have to slide your hand to the side when you spell
+// a word with double-letters. The word "HELLO" has 1 slide on the 'LL'
+function getHorizontalOffset() {
+	//Percentage of stage space that isn't covered by curtains.
+	var STAGE_SIZE = 60;
+	//Describes how far to the side we want to slide.
+	var SLIDE_AMOUNT = 5;
+	//Slide for each double-letter in the word.
+	// "MISSISSIPPI" has 3 slides: "SS", "SS", and "PP"
+	var horizontalOffset = SLIDE_AMOUNT * conversation.doubleLetters;
+	//Wrap around to the beginning if we slide ourselves offstage.
+	return horizontalOffset % STAGE_SIZE;
+}
+
 function showLetterImage(word, letterIndex, id) {
 	var letter = "_";
 	//Ensure it's an alphabetic character
 	if (word.length > 0 && word[letterIndex].match(/[a-z]/i)) {
 		// check for double letter
 		if (letterIndex > 0 && word[letterIndex] == word[letterIndex - 1]) {
-			conversation.horizontalOffset++;
+			conversation.doubleLetters++;
 		}
 		letter = word[letterIndex];
 	}
 	document.getElementById(id + "Stage").style.textAlign = "right";
-	document.getElementById(id + "Stage").style.paddingRight = (10 *
-		conversation.horizontalOffset) + "%";
+	document.getElementById(id).style.paddingRight = getHorizontalOffset() + "%";
 	document.getElementById(id).src = getImageFileName(letter);
 }
 
@@ -91,7 +104,7 @@ function updateLetter() {
 
 function clearInput() {
 	//Reset horizontal offset for word replays.
-	conversation.horizontalOffset = 0;
+	conversation.doubleLetters = 0;
 	//Reset playerInputPreview
 	showLetterImage("_", 0, "inputImage");
 	//Clear the textbox and focus
