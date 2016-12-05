@@ -2,25 +2,22 @@
 //All these objects used to be many variables.
 //I grouped them for code organization.
 
-var SPEEDS = [ //in milliseconds
-	1000, //slow
-	666, //medium
-	333, //fast
-	200 //Deaf
-];
-var FineTuneSpeedEnum = {
-	INCREASE: 0,
-	DECREASE: 1,
-	STEADY: 2
-}
+//Constants for handling delay between letters.
+var SpeedConstants = {
+	MAX: 1000,
+	MIN: 200,
+	DEFAULT: 600,
+	STEP: 1.1, //Change speed by a factor of 10%
+};
 
+//The player can be in only one of these states at a time.
 var StateEnum = {
 	LISTENING: 0,
 	SIGNING: 1
 };
 
 var conversation = {
-	playerState: StateEnum.LISTENING,
+	playerState: StateEnum.SIGNING,
 	score: 0,
 	horizontalOffset: 0, //for ASL-grammatically correct double letters.
 	wordIndex: 0,
@@ -32,7 +29,8 @@ var conversation = {
 var config = {
 	maxWordIndex: 0,
 	wordLengthLimit: 0,
-	speed: SPEEDS[1], //default speed is medium
+	delay: SpeedConstants.DEFAULT, //default speed is medium
+	autospeed: true //Speed automatically changes based on score.
 }
 
 function countAvailableWords(wordlist, maxlength) {
@@ -56,8 +54,12 @@ function clearUsed() {
 	conversation.wordIndex = 0;
 }
 
+function getImageFileName(letter) {
+	return "img/" + letter + ".gif";
+}
+
 function showLetterImage(word, letterIndex, id) {
-	var letter = " ";
+	var letter = "_";
 	//Ensure it's an alphabetic character
 	if (word.length > 0 && word[letterIndex].match(/[a-z]/i)) {
 		// check for double letter
@@ -66,10 +68,10 @@ function showLetterImage(word, letterIndex, id) {
 		}
 		letter = word[letterIndex];
 	}
-	document.getElementById(id).style.textAlign = "right";
-	document.getElementById(id).style.paddingRight = (5 *
+	document.getElementById(id + "Stage").style.textAlign = "right";
+	document.getElementById(id + "Stage").style.paddingRight = (10 *
 		conversation.horizontalOffset) + "%";
-	document.getElementById(id).innerHTML = letter;
+	document.getElementById(id).src = getImageFileName(letter);
 }
 
 function updateLetter() {
@@ -78,44 +80,25 @@ function updateLetter() {
 			showLetterImage(conversation.word, conversation.letterIndex,
 				"letterImage");
 			conversation.letterIndex++;
-			setTimeout(updateLetter, config.speed);
+			setTimeout(updateLetter, config.delay);
 		} else { //Computr is finished signing. Player's turn to sign.
-			showLetterImage(" ", 0, "letterImage");
+			showLetterImage("_", 0, "letterImage");
 			conversation.playerState = StateEnum.SIGNING;
 		}
 	}
 }
 
-function changeSpeed(speed_arg) {
-	config.speed = SPEEDS[speed_arg];
-	//playWord();
-}
 
 function clearInput() {
 	//Reset horizontal offset for word replays.
 	conversation.horizontalOffset = 0;
 	//Reset playerInputPreview
-	showLetterImage(" ", 0, "inputImage");
+	showLetterImage("_", 0, "inputImage");
 	//Clear the textbox and focus
 	document.getElementById("playerInput").value = "";
 	document.getElementById("playerInput").focus();
 }
 
-function inputListener() {
-	if (conversation.playerState == StateEnum.SIGNING) {
-		var input = document.getElementById('playerInput');
-		//If The user types texts and then deletes it
-		if (input.value == "") {
-			clearInput();
-		} else {
-			showLetterImage(input.value, input.value.length - 1, "inputImage");
-		}
-	}
-	//The user is listening and should not interrupt.
-	else {
-		clearInput();
-	}
-}
 
 function addToScore(amount) {
 	conversation.score += amount;
@@ -123,27 +106,12 @@ function addToScore(amount) {
 }
 
 function playWord() {
-	conversation.playerState = StateEnum.LISTENING;
-	conversation.letterIndex = 0;
-	clearInput();
-	updateLetter();
-}
-
-function fineTuneSpeed(fine_speed_arg) {
-	var ADJUST_BY = 1.3; //Adjust speed by thirds.
-	switch (fine_speed_arg) {
-		case FineTuneSpeedEnum.INCREASE:
-			config.speed *= ADJUST_BY;
-			break;
-		case FineTuneSpeedEnum.DECREASE:
-			config.speed /= ADJUST_BY
-			break;
-		case FineTuneSpeedEnum.STEADY:
-		default:
-			return false;
+	if (conversation.playerState == StateEnum.SIGNING) {
+		conversation.playerState = StateEnum.LISTENING;
+		conversation.letterIndex = 0;
+		clearInput();
+		updateLetter();
 	}
-	return true;
-	//playWord();
 }
 
 function setWordLengthLimit(length_lim) {
@@ -154,13 +122,20 @@ function setWordLengthLimit(length_lim) {
 }
 
 function checkWord() {
+	var isCorrect = false;
 	var inputText = document.getElementById("playerInput").value;
-	var isCorrect = inputText.toLowerCase() == conversation.word.toLowerCase();
 	if (inputText.length > 0) {
-		if (isCorrect) {
+		if (inputText.toLowerCase() == conversation.word.toLowerCase()) {
+			isCorrect = true;
 			addToScore(+1);
+			if (config.autospeed) {
+				onSpeedIncreaseListener();
+			}
 		} else {
 			addToScore(-1);
+			if (config.autospeed) {
+				onSpeedDecreaseListener();
+			}
 		}
 	}
 	return isCorrect;
@@ -168,8 +143,6 @@ function checkWord() {
 
 function newWord() {
 	var randIndex = 0;
-	var k;
-
 	//If we used all the words.
 	if (conversation.usedWords.length >= config.maxWordIndex) {
 		clearUsed();
@@ -184,22 +157,70 @@ function newWord() {
 	playWord();
 }
 
-function buttonClickListener() {
-	if (conversation.playerState == StateEnum.SIGNING) {
-		if (checkWord()) {
-			newWord();
-		} else {
-			//Replay so they can try again.
-			playWord();
-		}
+function onSubmitListener() {
+	if (checkWord()) {
+		newWord();
 	} else {
-		clearInput();
+		//Replay so they can try again.
+		playWord();
 	}
 }
 
+function reverseSlider(speed_arg) {
+	return SpeedConstants.MAX + SpeedConstants.MIN - speed_arg;
+}
+
+function onSpeedChangeListener() {
+	var speed = document.getElementById("speedSlider").value;
+	//Reverse the direction of the slider to be more intuitive.
+	config.delay = reverseSlider(parseInt(speed));
+	playWord();
+}
+
+function onSpeedIncreaseListener() {
+	config.delay /= SpeedConstants.STEP;
+	document.getElementById("speedSlider").value = reverseSlider(config.delay);
+	playWord();
+}
+
+function onSpeedDecreaseListener() {
+	config.delay *= SpeedConstants.STEP;
+	document.getElementById("speedSlider").value = reverseSlider(config.delay);
+	if (conversation.playerState == StateEnum.SIGNING) {
+		playWord();
+	}
+}
+
+function onTextInputListener(event) {
+	var ENTER_KEY = 13;
+	var input = document.getElementById('playerInput');
+	if (conversation.playerState == StateEnum.LISTENING) {
+		clearInput(); //Don't interrupt word.
+	} else if (event.keyCode == ENTER_KEY) {
+		onSubmitListener(); //Player typed something and wants to submit.
+	} else if (input.value == "") { //If player types texts and then deletes it
+		clearInput();
+	} else {
+		showLetterImage(input.value, input.value.length - 1, "inputImage");
+	}
+}
+
+function toggleAutoSpeedListener() {
+	config.autospeed = document.getElementById("autospeed").checked;
+}
+
 function onLoadListener() {
-	document.getElementById("playerSubmitAnswer").onclick = buttonClickListener;
-	document.getElementById("playerInput").onkeyup = inputListener;
+	document.getElementById("playerInput").addEventListener("keyup",
+		onTextInputListener);
+	document.getElementById("autospeed").onchange = toggleAutoSpeedListener;
+	document.getElementById("playerSubmitAnswer").onclick = onSubmitListener;
+	document.getElementById("faster").onclick = onSpeedIncreaseListener;
+	document.getElementById("slower").onclick = onSpeedDecreaseListener;
+	var slider = document.getElementById("speedSlider");
+	slider.max = SpeedConstants.MAX;
+	slider.min = SpeedConstants.MIN;
+	slider.value = SpeedConstants.DEFAULT;
+	slider.onchange = onSpeedChangeListener;
 	// sort by word length
 	WORDS.sort(compareWordlength);
 	setWordLengthLimit(99);

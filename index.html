@@ -3,16 +3,29 @@
   <head>
     <meta charset="utf-8">
     <title></title>
+    <link rel="stylesheet" href="css/styles.css">
     <script src="js/words.js" charset="utf-8"></script>
     <script src="js/quiz.js" charset="utf-8"></script>
   </head>
   <body>
-    <div id="letterImage">
+    <div class="stage" id="letterImageStage">
+      <img class="hands" id="letterImage" src="img/_.gif" />
     </div>
     <input type="text" id="playerInput" value="">
     <button type="button" id="playerSubmitAnswer">Go</button>
+    Score:
     <output type="number" id="score">0</output>
-    <div id="inputImage">
+    <br />
+    <div>
+      Speed:
+      <button type="button" id="slower">-</button>
+      <input type="range" id="speedSlider" min="200" max="1000" value="650" />
+      <button type="button" id="faster">+</button>
+      Auto:
+      <input type="checkbox" id="autospeed" value="Auto Speed" checked />
+    </div>
+    <div class="stage" id="inputImageStage">
+      <img class="hands" id="inputImage" src="img/_.gif" />
     </div>
   </body>
 </html>
