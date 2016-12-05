@@ -8,6 +8,7 @@
     <script src="js/quiz.js" charset="utf-8"></script>
   </head>
   <body>
+    <h1>Finger-Spell-It</h1>
     <table class="content">
       <tr>
         <td>
@@ -34,16 +35,7 @@
         </td>
       </tr>
       <tr>
-        <td>
-          <fieldset>
-            <label for="playerInput">Type the word</label>
-            <input type="text" id="playerInput" value="">
-            <button type="button" id="playerSubmitAnswer">Go</button>
-            <label for="score">Score</label>
-            <output type="number" id="score">0</output>
-          </fieldset>
-        </td>
-        <td>
+        <td class="leftControls">
           <fieldset>
             <label for="speedcontrol">Speed</label>
             <span id="speedcontrol">
@@ -55,7 +47,17 @@
             </span>
           </fieldset>
         </td>
+        <td class="rightControls">
+          <fieldset>
+            <label for="playerInput">Type the word</label>
+            <input type="text" id="playerInput" value="">
+            <button type="button" id="playerSubmitAnswer">Go</button>
+            <label for="score">Score</label>
+            <output type="number" id="score">0</output>
+          </fieldset>
+        </td>
       </tr>
     </table>
+    <p>Practice fingerspelling in American Sign Language.</p>
   </body>
 </html>
