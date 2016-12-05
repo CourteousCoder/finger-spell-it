@@ -1,4 +1,4 @@
-'use strict';
+//'use strict';
 //All these objects used to be many variables.
 //I grouped them for code organization.
 
@@ -75,9 +75,9 @@ function getHorizontalOffset() {
 function showLetterImage(word, letterIndex, id) {
 	var letter = "_";
 	//Ensure it's an alphabetic character
-	if (word.length > 0 && word[letterIndex].match(/[a-z]/i)) {
+	if (word[letterIndex].match(/[a-z]/i)) {
 		// check for double letter
-		if (letterIndex > 0 && word[letterIndex] == word[letterIndex - 1]) {
+		if (word[letterIndex] == word[letterIndex - 1]) {
 			conversation.doubleLetters++;
 		}
 		letter = word[letterIndex];
@@ -119,11 +119,11 @@ function addToScore(amount) {
 }
 
 function playWord() {
+	conversation.letterIndex = 0;
 	if (conversation.playerState == StateEnum.SIGNING) {
 		conversation.playerState = StateEnum.LISTENING;
-		conversation.letterIndex = 0;
 		clearInput();
-		updateLetter();
+		setTimeout(updateLetter, config.delay);
 	}
 }
 
@@ -167,6 +167,7 @@ function newWord() {
 	//Take that new word and set it as the current word.
 	conversation.usedWords.push(randIndex);
 	conversation.word = WORDS[randIndex];
+	console.log()
 	playWord();
 }
 
