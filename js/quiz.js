@@ -84,7 +84,7 @@ function showLetterImage(word, letterIndex, id) {
 	}
 	document.getElementById(id + "Stage").style.textAlign = "right";
 	document.getElementById(id).style.paddingRight = getHorizontalOffset() + "%";
-	document.getElementById(id).src = getImageFileName(letter);
+	document.getElementById(id).src = getImageFileName(letter.toLowerCase());
 }
 
 function updateLetter() {
