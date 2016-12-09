@@ -6,9 +6,14 @@ h1{
   font-size: 36pt;
   color: darkred;
 }
-p{
+h2{
   font-size: 24pt;
   text-align: center;
+  font-family: serif;
+}
+p{
+  font-size: 18pt;
+  text-align: justify;;
   font-family: serif;
 }
 body{
@@ -32,13 +37,6 @@ fieldset{
 td{
   width:50%;
   border-style: none;
-}
-
-.leftControls{
-  float: right;
-}
-.rightControls{
-
 }
 img.hands{
   max-height: 240px;

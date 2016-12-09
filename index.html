@@ -35,29 +35,51 @@
         </td>
       </tr>
       <tr>
-        <td class="leftControls">
+        <td>
           <fieldset>
+            <label for="lengthLimit">Word length limit</label>
+            <input type="number" id="lengthLimit" min="3" max="99" value="5" />
+            <button type="button" id="changeLimitButton">Change</button> |
             <label for="speedcontrol">Speed</label>
             <span id="speedcontrol">
               <button type="button" id="slower">-</button>
               <input type="range" id="speedSlider" />
-              <button type="button" id="faster">+</button>
+              <button type="button" id="faster">+</button>|
               <label for="autospeed">Auto Speed</label>
               <input type="checkbox" id="autospeed" value="Auto Speed" checked />
             </span>
           </fieldset>
         </td>
-        <td class="rightControls">
+        <td>
           <fieldset>
             <label for="playerInput">Type the word</label>
             <input type="text" id="playerInput" value="">
-            <button type="button" id="playerSubmitAnswer">Go</button>
+            <button type="button" id="playerSubmitAnswer">Go</button>|
             <label for="score">Score</label>
             <output type="number" id="score">0</output>
           </fieldset>
         </td>
       </tr>
     </table>
-    <p>Practice fingerspelling in American Sign Language.</p>
+    <h2>Practice fingerspelling in American Sign Language.</h2>
+    <p><strong>Instructions:</strong> A word will be fingerspelled for you on the left-stage.
+      Type the word you see. For each letter that you type, you will see its sign on the right-stage.</p>
+    <p>If you need to see the word again, leave the textbox blank and press the
+       <button type="button" disabled="true">Go</button> button. When you are ready to submit your answer,
+       press the <button type="button" disabled="true">Go</button> button. You may alternatively hit the [ENTER] key
+       instead of pressing the <button type="button" disabled="true">Go</button> button. </p>
+    <p>If you get a word right, your score increases by 1. If you get a word wrong, your score decreases by 1.
+      There is no penalty or reward for replaying a word.</p>
+    <p>You can increase the fingerspelling speed by pressing the <button type="button" disabled="true">+</button> button,
+      or by sliding the speed slider to the right.</p>
+    <p>You can decrease the fingerspelling speed by pressing the <button type="button" disabled="true">-</button> button,
+      or by sliding the speed slider to the left.</p>
+    <p>By default, when you get a word right, the speed will increase automatically
+      and when you get a word wrong, the speed will decrease automatically.
+      This setting can be disabled by unchecking the Auto Save checkbox. </p>
+    <p>By default, you will see words that are 5 letters long or less.
+      This can be changed by typing in a new word length limit and pressing the
+       <button type="button" disabled="true">Change</button> button. Note that the smallest word length is 3 letters. </p>
+
   </body>
 </html>

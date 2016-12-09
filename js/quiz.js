@@ -219,17 +219,33 @@ function onTextInputListener(event) {
 	}
 }
 
-function toggleAutoSpeedListener() {
+function onToggleAutoSpeedListener() {
 	config.autospeed = document.getElementById("autospeed").checked;
+}
+
+function onChangeLimitListener() {
+	var node = document.getElementById("lengthLimit");
+	var min = parseInt(node.min);
+	var max = parseInt(node.max);
+	var val = parseInt(node.value);
+	if (isNaN(val) || isNaN(min) || isNaN(max)) {
+		node.value = config.wordLengthLimit + '';
+	} else {
+		//clamp
+		val = (val < min) ? min : (val > max) ? max : val;
+		node.value = val;
+		setWordLengthLimit(val);
+	}
 }
 
 function onLoadListener() {
 	document.getElementById("playerInput").addEventListener("keyup",
 		onTextInputListener);
-	document.getElementById("autospeed").onchange = toggleAutoSpeedListener;
+	document.getElementById("autospeed").onchange = onToggleAutoSpeedListener;
 	document.getElementById("playerSubmitAnswer").onclick = onSubmitListener;
 	document.getElementById("faster").onclick = onSpeedIncreaseListener;
 	document.getElementById("slower").onclick = onSpeedDecreaseListener;
+	document.getElementById("changeLimitButton").onclick = onChangeLimitListener;
 	var slider = document.getElementById("speedSlider");
 	slider.max = SpeedConstants.MAX;
 	slider.min = SpeedConstants.MIN;
@@ -237,7 +253,7 @@ function onLoadListener() {
 	slider.onchange = onSpeedChangeListener;
 	// sort by word length
 	WORDS.sort(compareWordlength);
-	setWordLengthLimit(99);
+	setWordLengthLimit(5);
 }
 
 window.onload = onLoadListener;
