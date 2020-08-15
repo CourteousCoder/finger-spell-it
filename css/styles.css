@@ -1,0 +1,70 @@
+h1{
+  font-stretch: ultra-expanded;
+  font-weight: bolder;
+  font-family: cursive;
+  text-align: center;
+  font-size: 36pt;
+  color: darkred;
+}
+h2{
+  font-size: 24pt;
+  text-align: center;
+  font-family: serif;
+}
+p{
+  font-size: 18pt;
+  text-align: justify;;
+  font-family: serif;
+}
+body{
+  background-color: cornflowerblue;
+}
+.content{
+  width:100%;
+  background-color: #eeeeee;
+}
+fieldset{
+  border-style:none;
+}
+.theater {
+  position: relative;
+  background-color: black;
+}
+.stage {
+  height: 40%;
+}
+
+td{
+  width:50%;
+  border-style: none;
+}
+img.hands{
+  max-height: 240px;
+  height: auto
+  width: auto;
+
+  margin:20%;
+  margin-bottom: 0;
+  margin-top: 15%;
+
+}
+.curtainOverlay {
+  position: absolute;
+  top: 0;
+}
+
+img.topcurtain{
+  height: 20%;
+  width: 100%;
+  left: 0;
+}
+img.leftcurtain{
+  height: 100%;
+  width: 20%;
+  left: 0;
+}
+img.rightcurtain{
+  height: 100%;
+  width: 20%;
+  right: 0;
+}
