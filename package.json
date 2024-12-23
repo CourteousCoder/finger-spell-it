@@ -1,6 +1,6 @@
 {
-  "name": "vite-rtk-query",
-  "version": "0.4.0",
+  "name": "finger-spell-it",
+  "version": "1.0.0",
   "license": "MIT",
   "msw": {
     "workerDirectory": "public"
@@ -34,7 +34,8 @@
     "react-redux": "^9.2.0",
     "react-router-dom": "^6.28.0",
     "redux": "5.0.1",
-    "redux-first-history": "^5.2.0"
+    "redux-first-history": "^5.2.0",
+    "rimraf": "^6.0.1"
   },
   "devDependencies": {
     "@tailwindcss/aspect-ratio": "^0.4.2",
